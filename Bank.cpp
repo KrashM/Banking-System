@@ -1,5 +1,12 @@
 #include "Bank.hpp"
 
+// Lybraries to check if folder exists
+#include <sys/types.h>
+#include <sys/stat.h>
+
+// Lybrary to create folder
+#include <direct.h>
+
 Bank::Bank(): name(nullptr), address(nullptr){}
 Bank::Bank(const char *name, const char *address): name(new char[strlen(name) + 1]), address(new char[strlen(address) + 1]){
 
@@ -39,7 +46,7 @@ void Bank::copy(const Bank &other){
     this -> address = new char[strlen(other.address) + 1];
     strcpy(this -> address, other.address);
 
-    this -> log = other.log;
+    this -> logs = other.logs;
     this -> customers = other.customers;
     this -> accounts = other.accounts;
 
@@ -88,7 +95,69 @@ void Bank::listCustomerAccounts(const u_short userId) const{
 
 }
 
-void Bank::exportLog() const{ cout << "Logging\n"; }
+const char *convertIndex(const size_t index){
+
+    char *result = new char[4];
+
+    result[0] = '0' + index / 100;
+    result[1] = '0' + (index / 10) % 10;
+    result[2] = '0' + index % 10;
+    result[3] = '\0';
+
+    return result;
+
+}
+
+bool fileExists(const char *path){
+
+    bool flag;
+    ifstream file(path);
+
+    if(file.good()) flag = true;
+    else flag = false;
+
+    file.close();
+
+    return flag;
+
+}
+
+void Bank::exportLog() const{
+
+    char *path = new char[100];
+    strcpy(path, "Logs/");
+
+    const Date currDate = Date(time(0));
+    strcat(path, currDate.logFormatToString());
+
+    struct stat info;
+    if(stat(path, &info) || !(info.st_mode & S_IFDIR)) mkdir(path);
+
+    strcat(path, "/logfile_");
+    strcat(path, currDate.logFormatToString());
+    strcat(path, "_000.txt");
+
+    size_t pathLenght = strlen(path);
+    for(size_t i = 0; i < 1000; i++){
+
+        if(!fileExists(path)) break;
+        path[pathLenght - 5] = '0' + i % 10;
+        path[pathLenght - 6] = '0' + (i / 10) % 10;
+        path[pathLenght - 7] = '0' + i / 100;
+
+    }
+    ofstream logFile(path);
+    if(!logFile.is_open()) return;
+
+    for(size_t i = 0; i < this -> logs.size(); i++)
+        logFile << this -> logs[i] << '\n';
+
+    if(logFile.good()) logFile.close();
+    else throw MessageException("File unable to close\n");
+
+}
+
+void Bank::createLog(const String &log){ this -> logs.pushBack(log); }
 
 void Bank::transfer(const double amount, const char *fromIBAN, const char *toIBAN){
 
@@ -108,6 +177,14 @@ void Bank::transfer(const double amount, const char *fromIBAN, const char *toIBA
                 toAcc -> deposit(amount);
 
             }
+
+            char buffer[100];
+            char format[] = "Transfer made from %s to %s for amount: %s";
+            sprintf(buffer, format, fromIBAN, toIBAN, StringConverter::doubleToString(amount));
+
+            String str(buffer);
+
+            this -> createLog(str);
 
             return;
 

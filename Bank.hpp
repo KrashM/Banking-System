@@ -3,6 +3,7 @@
 #include "Account.hpp"
 #include "Customer.hpp"
 #include "../../../../includes/Vector.h"
+#include "../../../../includes/String.h"
 
 class Bank{
 
@@ -24,6 +25,7 @@ class Bank{
         void listCustomerAccounts(const u_short) const;
 
         void exportLog() const;
+        void createLog(const String &);
 
         void transfer(const double, const char *, const char *);
 
@@ -32,7 +34,7 @@ class Bank{
     private:
         Vector<Account *> accounts;
         Vector<Customer *> customers;
-        Vector<char *> log;
+        Vector<String> logs;
         char *name, *address;
 
         void free();

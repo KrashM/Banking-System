@@ -37,7 +37,6 @@ int main(){
     myBank.listAccounts();
     cout << "Listing accounts of gosho:\n";
     myBank.listCustomerAccounts(2);
-    cout << "\n\n";
 
     cout << "Doing transfers\n\n";
     myBank.transfer(50, "1234", "5678");
@@ -45,5 +44,8 @@ int main(){
 
     cout << "Displaying bank info\n";
     myBank.display();
+
+    try{ myBank.exportLog(); }
+    catch(const MessageException &e){ cerr << e.what() << '\n'; }
 
 }
