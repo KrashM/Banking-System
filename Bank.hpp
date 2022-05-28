@@ -2,8 +2,8 @@
 
 #include "Account.hpp"
 #include "Customer.hpp"
-#include "../../../../includes/Vector.h"
-#include "../../../../includes/String.h"
+#include "utils/Vector.h"
+#include "utils/String.h"
 
 class Bank{
 
@@ -27,6 +27,8 @@ class Bank{
         void exportLog() const;
         void createLog(const String &);
 
+        void withdrawFromAcc(const double, const char *);
+        void depositToAcc(const double, const char *);
         void transfer(const double, const char *, const char *);
 
         void display() const;

@@ -1,12 +1,5 @@
 #include "Bank.hpp"
 
-// Lybraries to check if folder exists
-#include <sys/types.h>
-#include <sys/stat.h>
-
-// Lybrary to create folder
-#include <direct.h>
-
 Bank::Bank(): name(nullptr), address(nullptr){}
 Bank::Bank(const char *name, const char *address): name(new char[strlen(name) + 1]), address(new char[strlen(address) + 1]){
 
@@ -159,6 +152,47 @@ void Bank::exportLog() const{
 
 void Bank::createLog(const String &log){ this -> logs.pushBack(log); }
 
+void Bank::withdrawFromAcc(const double amount, const char *iban){
+
+    bool success;
+
+    for(size_t i = 0; i < this -> accounts.size(); i++)
+        if(!strcmp(this -> accounts[i] -> getIBAN(), iban))
+            if(this -> accounts[i] -> withdraw(amount)) break;
+            else return;
+
+    
+    char buffer[100];
+    char format[] = "Withdrawn %s from %s";
+    sprintf(buffer, format, StringConverter::doubleToString(amount), iban);
+
+    String str(buffer);
+
+    this -> createLog(str);
+
+}
+
+void Bank::depositToAcc(const double amount, const char *iban){
+
+    for(size_t i = 0; i < this -> accounts.size(); i++)
+        if(!strcmp(this -> accounts[i] -> getIBAN(), iban)){
+
+            this -> accounts[i] -> deposit(amount);
+            break;
+
+        }
+
+    
+    char buffer[100];
+    char format[] = "Deposited %s to %s";
+    sprintf(buffer, format, StringConverter::doubleToString(amount), iban);
+
+    String str(buffer);
+
+    this -> createLog(str);
+
+}
+
 void Bank::transfer(const double amount, const char *fromIBAN, const char *toIBAN){
 
     Account *toAcc = nullptr;
@@ -172,11 +206,14 @@ void Bank::transfer(const double amount, const char *fromIBAN, const char *toIBA
 
                 if(toAcc == nullptr)
                     for(size_t j = i + 1; j < this -> accounts.size(); j++)
-                        if(!strcmp(this -> accounts[i] -> getIBAN(), toIBAN))
-                            toAcc = this -> accounts[i];
+                        if(!strcmp(this -> accounts[j] -> getIBAN(), toIBAN))
+                            toAcc = this -> accounts[j];
+
                 toAcc -> deposit(amount);
 
             }
+            else return;
+
 
             char buffer[100];
             char format[] = "Transfer made from %s to %s for amount: %s";
